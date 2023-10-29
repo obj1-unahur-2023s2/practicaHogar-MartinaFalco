@@ -1,7 +1,13 @@
 class Casa{
+	const habitaciones =#{}
+	var property familia 
+	method aniadirHabitacion(habitacion) = habitaciones.add(habitacion)
+}
+
+class HabitacionGeneral{
 	var property confortBase = 10
 	const ocupantes =#{}
-	method confortExtra(persona){}
+	method confortExtra(persona)
 	method aniadirOcupante(ocupante){
 		ocupantes.add(ocupante)
 	}
@@ -13,18 +19,14 @@ class Casa{
 	method cantidadDeOcupantes() = ocupantes.size()
 }
 
-class HabitacionGeneral inherits Casa{
-	
-}
-
-class Dormitorio inherits Casa{ 
+class Dormitorio inherits HabitacionGeneral{ 
 	override method aniadirOcupante(ocupante){
 		if (ocupante.duermeEnDormitorio(self)){ocupantes.add(ocupante)}
 	}
-	override method confortExtra(ocupante){confortBase += 10 / self.cantidadDeOcupantes()}
+	override method confortExtra(ocupante) = confortBase + 10 / self.cantidadDeOcupantes()
 }
 
-class Banio inherits Casa{
+class Banio inherits HabitacionGeneral{
 	method hayNinio() = ocupantes.find{p => p.edad() <= 4}
 	override method aniadirOcupante(ocupante){
 		if(self.hayNinio()){
@@ -32,17 +34,17 @@ class Banio inherits Casa{
 		}
 	}
 
-	override method confortExtra(persona){
+	override method confortExtra(persona) =
 		if (persona.edad()<=4){
 			confortBase += 2
 		}
 		else{
 			confortBase += 4
 		}
-	}
+	
 }
 
-class Cocina inherits Casa{
+class Cocina inherits HabitacionGeneral{
 	var property metrosCuadrados = 10
 	method hayPersonaQueSabeCocinar() = ocupantes.find{o => o.tieneHabilidadDeCocina()}
 	
@@ -55,12 +57,13 @@ class Cocina inherits Casa{
 		}
 	}
 	
-		override method confortExtra(persona){
+		override method confortExtra(persona)=
 		if (persona.tieneHabilidadDeCocina()){
 			confortBase += metrosCuadrados
 		}
-		
-	}
+		else{
+			confortBase
+		}	
 }
 
 class Familia{
@@ -69,11 +72,11 @@ class Familia{
 	method confortTotal() = integrantes.sum{o=> o.confort()}
 	method confortPromedio() = self.confortTotal() / self.cantidadDeIntegrantes()
 	method cantidadDeIntegrantes() = integrantes.size()
-	method noEstaVacia() = self.cantidadDeIntegrantes()>=1
+	method estaVacia() = self.cantidadDeIntegrantes() == 0
 	method integranteMasViejo() = integrantes.max{o => o.edad()}
 }
 
-class Persona inherits Familia{
+class Persona{
 	var property edad = 0
 	var property tieneHabilidadDeCocina = false
 	var property habitacionActual
