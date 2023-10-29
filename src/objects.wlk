@@ -4,7 +4,7 @@ class Casa{
 }
 
 class HabitacionGeneral{
-	var property confortBase = 10
+	const confortBase = 10
 	const ocupantes =#{}
 	method confortExtra(persona)
 	method aniadirOcupante(ocupante){
@@ -17,12 +17,15 @@ class HabitacionGeneral{
 	method cantidadDeOcupantes() = ocupantes.size()
 }
 
-class Dormitorio inherits HabitacionGeneral{ 
+class Dormitorio inherits HabitacionGeneral{
+	var property familia 
 	override method aniadirOcupante(ocupante){
-		if (ocupante.duermeEnDormitorio(self)){ocupantes.add(ocupante)}
-		if (not ocupante.duermeEnDormitorio(self) and self.estaLleno()){ocupantes.add(ocupante)}
+		if (ocupante.dormitorio() == self or(not ocupante.dormitorio() == self and self.estanTodos()) ){ocupantes.add(ocupante)}
 	}	
-	method estaLleno() = ocupantes.all{o=> o.duermeEnDormitorio(self)}
+	method estanTodos() = familia.personasQueDuermenEnDormitorio(self) == self.ocupantesQueDuermenEnDormitorio()
+	method ocupantesQueDuermenEnDormitorio() = ocupantes.intersection{o=> o.personasQueDuermenEnDormitorio(self)}
+	
+	
 	override method confortExtra(ocupante) = 
 	if (ocupante.duermeEnDormitorio(self)){confortBase + 10 / self.cantidadDeOcupantes()}
 	else{
@@ -31,9 +34,9 @@ class Dormitorio inherits HabitacionGeneral{
 }
 
 class Banio inherits HabitacionGeneral{
-	method hayNinio() = ocupantes.find{p => p.edad() <= 4}
+	method hayNinio() = ocupantes.any{p => p.edad() <= 4}
 	override method aniadirOcupante(ocupante){
-		if(self.hayNinio()){
+		if(self.hayNinio() or self.cantidadDeOcupantes() == 0){
 			ocupantes.add(ocupante)
 		}
 	}
@@ -49,22 +52,19 @@ class Banio inherits HabitacionGeneral{
 }
 
 class Cocina inherits HabitacionGeneral{
-	var property metrosCuadrados
-	method porcentaje() = metrosCuadrados * 0.50
-	method hayPersonaQueSabeCocinar() = ocupantes.find{o => o.tieneHabilidadDeCocina()}
+	var property metrosCuadrados = 500
+	var property porcentaje = 10	
+	method hayPersonaQueSabeCocinar() = ocupantes.any{o => o.tieneHabilidadDeCocina()}
 	
 	override method aniadirOcupante(ocupante){
-		if (not self.hayPersonaQueSabeCocinar() and ocupante.tieneHabilidadDeCocina()) {
+		if ((not self.hayPersonaQueSabeCocinar() and ocupante.tieneHabilidadDeCocina()) or (not ocupante.tieneHabilidadDeCocina())) {
 			ocupantes.add(ocupante)
 		}
-		if(not ocupante.tieneHabilidadDeCocina()){
-			ocupantes.add(ocupante)
-		}
+
 	}
-	
 		override method confortExtra(persona)=
 		if (persona.tieneHabilidadDeCocina()){
-			confortBase + self.porcentaje()
+			confortBase + metrosCuadrados * porcentaje / 100
 		}
 		else{
 			confortBase
@@ -80,6 +80,7 @@ class Familia{
 	method cantidadDeIntegrantes() = integrantes.size()
 	method estaVacia() = self.cantidadDeIntegrantes() == 0
 	method integranteMasViejo() = integrantes.max{o => o.edad()}
+	method personasQueDuermenEnDormitorio(dormitorio) = integrantes.filter{p=>p.dormitorio() == dormitorio}
 }
 
 class Persona{
@@ -87,8 +88,7 @@ class Persona{
 	var property tieneHabilidadDeCocina = false
 	var property habitacionActual
 	var property confort = 0
-
-	method duermeEnDormitorio(dormitorio) 
+	var property dormitorio
 	method ocuparHabitacion(habitacion){
 		habitacionActual.quitarOcupante(self)
 		habitacion.aniadirOcupante(self)
