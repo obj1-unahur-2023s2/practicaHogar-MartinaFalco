@@ -1,6 +1,5 @@
 class Casa{
 	const habitaciones =#{}
-	var property familia 
 	method aniadirHabitacion(habitacion) = habitaciones.add(habitacion)
 }
 
@@ -14,16 +13,21 @@ class HabitacionGeneral{
 	method quitarOcupante(ocupante){
 		ocupantes.remove(ocupante)
 	}
-
-	
+		
 	method cantidadDeOcupantes() = ocupantes.size()
 }
 
 class Dormitorio inherits HabitacionGeneral{ 
 	override method aniadirOcupante(ocupante){
 		if (ocupante.duermeEnDormitorio(self)){ocupantes.add(ocupante)}
+		if (not ocupante.duermeEnDormitorio(self) and self.estaLleno()){ocupantes.add(ocupante)}
+	}	
+	method estaLleno() = ocupantes.all{o=> o.duermeEnDormitorio(self)}
+	override method confortExtra(ocupante) = 
+	if (ocupante.duermeEnDormitorio(self)){confortBase + 10 / self.cantidadDeOcupantes()}
+	else{
+		confortBase
 	}
-	override method confortExtra(ocupante) = confortBase + 10 / self.cantidadDeOcupantes()
 }
 
 class Banio inherits HabitacionGeneral{
@@ -36,16 +40,17 @@ class Banio inherits HabitacionGeneral{
 
 	override method confortExtra(persona) =
 		if (persona.edad()<=4){
-			confortBase += 2
+			confortBase + 2
 		}
 		else{
-			confortBase += 4
+			confortBase + 4
 		}
 	
 }
 
 class Cocina inherits HabitacionGeneral{
-	var property metrosCuadrados = 10
+	var property metrosCuadrados
+	method porcentaje() = metrosCuadrados * 0.50
 	method hayPersonaQueSabeCocinar() = ocupantes.find{o => o.tieneHabilidadDeCocina()}
 	
 	override method aniadirOcupante(ocupante){
@@ -59,7 +64,7 @@ class Cocina inherits HabitacionGeneral{
 	
 		override method confortExtra(persona)=
 		if (persona.tieneHabilidadDeCocina()){
-			confortBase += metrosCuadrados
+			confortBase + self.porcentaje()
 		}
 		else{
 			confortBase
@@ -68,6 +73,7 @@ class Cocina inherits HabitacionGeneral{
 
 class Familia{
 	const integrantes = #{}
+	var property casa
 	method aniadirIntegrante(persona){integrantes.add(persona)}
 	method confortTotal() = integrantes.sum{o=> o.confort()}
 	method confortPromedio() = self.confortTotal() / self.cantidadDeIntegrantes()
@@ -89,5 +95,5 @@ class Persona{
 		habitacionActual = habitacion
 		confort = habitacion.confortExtra()
 	}
-	method aprenderCocina() = tieneHabilidadDeCocina 
+	method aprenderCocina() {tieneHabilidadDeCocina = true }
 }
